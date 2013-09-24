@@ -19,7 +19,7 @@ public class YambaApplication extends Application
 
 
     private YambaClient yamba;
-    private String usrKey;
+    private String hdlKey;
     private String pwdKey;
     private String uriKey;
 
@@ -28,7 +28,7 @@ public class YambaApplication extends Application
         super.onCreate();
 
         Resources rez = getResources();
-        usrKey = rez.getString(R.string.prefs_key_user);
+        hdlKey = rez.getString(R.string.prefs_key_handle);
         pwdKey = rez.getString(R.string.prefs_key_pass);
         uriKey = rez.getString(R.string.prefs_key_uri);
 
@@ -49,14 +49,14 @@ public class YambaApplication extends Application
     public synchronized YambaClient getYambaClient() throws YambaClientException {
         if (null == yamba) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            String usr = prefs.getString(usrKey, null);
+            String hdl = prefs.getString(hdlKey, null);
             String pwd = prefs.getString(pwdKey, null);
             String uri = prefs.getString(uriKey, null);
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "new user: " + usr + "," + pwd  + " @" + uri);
+                Log.d(TAG, "new handle: " + hdl + "," + pwd  + " @" + uri);
             }
-            try { yamba = new YambaClient(usr, pwd, uri); }
+            try { yamba = new YambaClient(hdl, pwd, uri); }
             catch (IllegalArgumentException e) {
                 Log.d(TAG, "failed to create client");
                 throw new YambaClientException("failed to create client", e);

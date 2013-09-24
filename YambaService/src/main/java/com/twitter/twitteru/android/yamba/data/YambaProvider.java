@@ -45,20 +45,20 @@ public class YambaProvider extends ContentProvider {
                 YambaDbHelper.COL_TIMESTAMP,
                 ColumnMap.Type.LONG)
         .addColumn(
-                YambaContract.Timeline.Columns.USER,
-                YambaDbHelper.COL_USER,
+                YambaContract.Timeline.Columns.HANDLE,
+                YambaDbHelper.COL_HANDLE,
                 ColumnMap.Type.STRING)
         .addColumn(
-                YambaContract.Timeline.Columns.STATUS,
-                YambaDbHelper.COL_STATUS,
+                YambaContract.Timeline.Columns.TWEET,
+                YambaDbHelper.COL_TWEET,
                 ColumnMap.Type.STRING)
         .build();
 
     private static final Map<String, String> PROJ_MAP_TIMELINE = new ProjectionMap.Builder()
         .addColumn(YambaContract.Timeline.Columns.ID, YambaDbHelper.COL_ID)
         .addColumn(YambaContract.Timeline.Columns.TIMESTAMP, YambaDbHelper.COL_TIMESTAMP)
-        .addColumn(YambaContract.Timeline.Columns.USER, YambaDbHelper.COL_USER)
-        .addColumn(YambaContract.Timeline.Columns.STATUS, YambaDbHelper.COL_STATUS)
+        .addColumn(YambaContract.Timeline.Columns.HANDLE, YambaDbHelper.COL_HANDLE)
+        .addColumn(YambaContract.Timeline.Columns.TWEET, YambaDbHelper.COL_TWEET)
         .addColumn(
                 YambaContract.Timeline.Columns.MAX_TIMESTAMP,
                 "max(" + YambaDbHelper.COL_TIMESTAMP + ")")

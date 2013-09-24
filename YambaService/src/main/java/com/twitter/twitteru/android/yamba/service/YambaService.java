@@ -11,7 +11,6 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.marakana.android.yamba.clientlib.YambaClient;
-import com.marakana.android.yamba.clientlib.YambaClient.Status;
 import com.marakana.android.yamba.clientlib.YambaClientException;
 
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ public class YambaService extends IntentService {
         if (BuildConfig.DEBUG) { Log.d(TAG, "exec: " + op); }
         switch (op) {
             case YambaContract.Service.OP_POST:
-                doPost(i.getStringExtra(YambaContract.Service.PARAM_STATUS));
+                doPost(i.getStringExtra(YambaContract.Service.PARAM_TWEET));
                 break;
 
             case YambaContract.Service.OP_POLL:
@@ -72,10 +71,10 @@ public class YambaService extends IntentService {
         }
     }
 
-    private void doPost(String status) {
+    private void doPost(String tweet) {
         boolean succeeded = false;
         try {
-            getClient().postStatus(status);
+            getClient().postStatus(tweet);
             if (BuildConfig.DEBUG) { Log.d(TAG, "post succeeded"); }
             succeeded = true;
         }
@@ -129,21 +128,21 @@ public class YambaService extends IntentService {
         if (0 < n) { notifyTimelineUpdate(n); }
     }
 
-    private int parseTimeline(List<Status> timeline) {
-        long latest = getLatestStatusTime();
+    private int parseTimeline(List<YambaClient.Status> timeline) {
+        long latest = getLatestTweetTime();
         if (BuildConfig.DEBUG) { Log.d(TAG, "latest: " + latest); }
 
         List<ContentValues> vals = new ArrayList<ContentValues>();
 
-        for (Status status: timeline) {
-            long t = status.getCreatedAt().getTime();
+        for (YambaClient.Status tweet: timeline) {
+            long t = tweet.getCreatedAt().getTime();
             if (t <= latest) { continue; }
 
             ContentValues cv = new ContentValues();
-            cv.put(YambaContract.Timeline.Columns.ID, Long.valueOf(status.getId()));
+            cv.put(YambaContract.Timeline.Columns.ID, Long.valueOf(tweet.getId()));
             cv.put(YambaContract.Timeline.Columns.TIMESTAMP, Long.valueOf(t));
-            cv.put(YambaContract.Timeline.Columns.USER, status.getUser());
-            cv.put(YambaContract.Timeline.Columns.STATUS, status.getMessage());
+            cv.put(YambaContract.Timeline.Columns.HANDLE, tweet.getUser());
+            cv.put(YambaContract.Timeline.Columns.TWEET, tweet.getMessage());
             vals.add(cv);
         }
 
@@ -157,7 +156,7 @@ public class YambaService extends IntentService {
         return n;
     }
 
-    private long getLatestStatusTime() {
+    private long getLatestTweetTime() {
         Cursor c = null;
         try {
             c = getContentResolver().query(

@@ -10,13 +10,13 @@ class YambaDbHelper extends SQLiteOpenHelper {
     private static final String TAG = "DB";
 
     public static final String DATABASE = "yamba.db";
-    public static final int VERSION = 2;
+    public static final int VERSION = 3;
 
     static final String TABLE_TIMELINE = "p_timeline";
     static final String COL_ID = "p_id";
     static final String COL_TIMESTAMP = "p_timestamp";
-    static final String COL_USER = "p_user";
-    static final String COL_STATUS = "p_status";
+    static final String COL_HANDLE = "p_handle";
+    static final String COL_TWEET = "p_tweet";
 
     private static final String TABLE_TIMELINE_V1 = "timeline";
 
@@ -31,8 +31,8 @@ class YambaDbHelper extends SQLiteOpenHelper {
                 "CREATE TABLE " + TABLE_TIMELINE + "("
                         + COL_ID + " INTEGER PRIMARY KEY,"
                         + COL_TIMESTAMP + " INTEGER NOT NULL,"
-                        + COL_USER + " STRING NOT NULL,"
-                        + COL_STATUS + " STRING" + ")");
+                        + COL_HANDLE + " STRING NOT NULL,"
+                        + COL_TWEET + " STRING" + ")");
     }
 
     @Override

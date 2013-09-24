@@ -19,8 +19,8 @@
     <!-- Prefs -->
     <string name="prefs_label">Prefs</string>
     <string name="prefs_header">Yamba prefs</string>
-    <string name="prefs_key_user">PREFS.USER</string>
-    <string name="prefs_title_user">Account</string>
+    <string name="prefs_key_handle">PREFS.HANDLE</string>
+    <string name="prefs_title_handle">Handle</string>
     <string name="prefs_key_pass">PREFS.PASS</string>
     <string name="prefs_title_password">Password</string>
     <string name="prefs_key_uri">PREFS.URI</string>

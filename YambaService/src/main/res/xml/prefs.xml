@@ -2,8 +2,8 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <EditTextPreference
-        android:key="@string/prefs_key_user"
-        android:title="@string/prefs_title_user" />
+        android:key="@string/prefs_key_handle"
+        android:title="@string/prefs_title_handle" />
     <EditTextPreference
         android:key="@string/prefs_key_pass"
         android:password="true"
