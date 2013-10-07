@@ -2,7 +2,7 @@
 <preference-headers xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <header
-        android:fragment="com.twitter.twitteru.android.yamba.service.PrefsActivity$ClientPrefs"
+        android:fragment="com.twitter.university.android.yamba.service.PrefsActivity$ClientPrefs"
         android:title="@string/prefs_header" />
     
 </preference-headers>

@@ -1,4 +1,4 @@
-package com.twitter.twitteru.android.yamba.service;
+package com.twitter.university.android.yamba.service;
 
 import android.os.Build;
 import android.os.Bundle;

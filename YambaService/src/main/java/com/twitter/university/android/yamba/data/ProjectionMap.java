@@ -1,4 +1,4 @@
-package com.twitter.twitteru.android.yamba.data;
+package com.twitter.university.android.yamba.data;
 
 import java.util.Collections;
 import java.util.HashMap;

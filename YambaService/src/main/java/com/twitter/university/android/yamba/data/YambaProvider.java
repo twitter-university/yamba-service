@@ -1,4 +1,4 @@
-package com.twitter.twitteru.android.yamba.data;
+package com.twitter.university.android.yamba.data;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.util.Log;
 
-import com.twitter.twitteru.android.yamba.service.YambaContract;
+import com.twitter.university.android.yamba.service.YambaContract;
 
 import java.util.Map;
 
@@ -18,21 +18,26 @@ import java.util.Map;
 public class YambaProvider extends ContentProvider {
     private static final String TAG = "PROVIDER";
 
-    private static final int TIMELINE_ITEM_TYPE = 1;
-    private static final int TIMELINE_DIR_TYPE = 2;
+    private static final int MAX_TIMELINE_ITEM_TYPE = 1;
+    private static final int TIMELINE_ITEM_TYPE = 2;
+    private static final int TIMELINE_DIR_TYPE = 3;
 
-    //  scheme           authority                    path  [id]
-    // content://com.twitter.twitteru.android.yamba.timeline/timeline/7
+    //  scheme                     authority                   path  [id]
+    // content://com.twitter.university.android.yamba.timeline/timeline/7
     private static final UriMatcher MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
     static {
         MATCHER.addURI(
-                YambaContract.AUTHORITY,
-                YambaContract.Timeline.TABLE + "/#",
-                TIMELINE_ITEM_TYPE);
+            YambaContract.AUTHORITY,
+            YambaContract.MaxTimeline.TABLE,
+            MAX_TIMELINE_ITEM_TYPE);
         MATCHER.addURI(
-                YambaContract.AUTHORITY,
-                YambaContract.Timeline.TABLE,
-                TIMELINE_DIR_TYPE);
+            YambaContract.AUTHORITY,
+            YambaContract.Timeline.TABLE + "/#",
+            TIMELINE_ITEM_TYPE);
+        MATCHER.addURI(
+            YambaContract.AUTHORITY,
+            YambaContract.Timeline.TABLE,
+            TIMELINE_DIR_TYPE);
     }
 
     private static final ColumnMap COL_MAP_TIMELINE = new ColumnMap.Builder()
@@ -59,12 +64,15 @@ public class YambaProvider extends ContentProvider {
         .addColumn(YambaContract.Timeline.Columns.TIMESTAMP, YambaDbHelper.COL_TIMESTAMP)
         .addColumn(YambaContract.Timeline.Columns.HANDLE, YambaDbHelper.COL_HANDLE)
         .addColumn(YambaContract.Timeline.Columns.TWEET, YambaDbHelper.COL_TWEET)
-        .addColumn(
-                YambaContract.Timeline.Columns.MAX_TIMESTAMP,
-                "max(" + YambaDbHelper.COL_TIMESTAMP + ")")
         .build()
         .getProjectionMap();
 
+    private static final Map<String, String> PROJ_MAP_MAX_TIMELINE = new ProjectionMap.Builder()
+        .addColumn(
+            YambaContract.Timeline.Columns.MAX_TIMESTAMP,
+            "max(" + YambaDbHelper.COL_TIMESTAMP + ")")
+        .build()
+        .getProjectionMap();
 
     private YambaDbHelper dbHelper;
 
@@ -78,10 +86,12 @@ public class YambaProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         switch (MATCHER.match(uri)) {
+            case MAX_TIMELINE_ITEM_TYPE:
+                return YambaContract.MaxTimeline.ITEM_TYPE;
             case TIMELINE_ITEM_TYPE:
-                return YambaContract.ITEM_TYPE;
+                return YambaContract.Timeline.ITEM_TYPE;
             case TIMELINE_DIR_TYPE:
-                return YambaContract.DIR_TYPE;
+                return YambaContract.Timeline.DIR_TYPE;
             default:
                 return null;
         }
@@ -92,22 +102,25 @@ public class YambaProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] proj, String sel, String[] selArgs, String sort) {
         Log.d(TAG, "query");
 
-        String table;
         long pk = -1;
+        Map<String, String> projMap;
         switch (MATCHER.match(uri)) {
+            case MAX_TIMELINE_ITEM_TYPE:
+                projMap = PROJ_MAP_MAX_TIMELINE;
+                break;
             case TIMELINE_ITEM_TYPE:
                 pk = ContentUris.parseId(uri);
             case TIMELINE_DIR_TYPE:
-                table = YambaDbHelper.TABLE_TIMELINE;
+                projMap = PROJ_MAP_TIMELINE;
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected uri: " + uri);
         }
 
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setTables(table);
+        qb.setTables(YambaDbHelper.TABLE_TIMELINE);
 
-        qb.setProjectionMap(PROJ_MAP_TIMELINE);
+        qb.setProjectionMap(projMap);
 
         if (0 < pk) { qb.appendWhere(YambaDbHelper.COL_ID + "=" + pk); }
 

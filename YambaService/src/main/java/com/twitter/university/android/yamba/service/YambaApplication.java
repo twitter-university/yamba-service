@@ -1,12 +1,10 @@
-package com.twitter.twitteru.android.yamba.service;
+package com.twitter.university.android.yamba.service;
 
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 import android.util.Log;
-
-import com.twitter.twitteru.android.yamba.service.YambaService;
 
 import com.marakana.android.yamba.clientlib.YambaClient;
 import com.marakana.android.yamba.clientlib.YambaClientException;

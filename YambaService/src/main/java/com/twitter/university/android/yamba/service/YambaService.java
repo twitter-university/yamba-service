@@ -1,4 +1,4 @@
-package com.twitter.twitteru.android.yamba.service;
+package com.twitter.university.android.yamba.service;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
@@ -28,6 +28,7 @@ public class YambaService extends IntentService {
         ctxt.startService(i);
     }
 
+
     private volatile int pollSize;
     private volatile long pollInterval;
 
@@ -42,8 +43,14 @@ public class YambaService extends IntentService {
         pollSize = rez.getInteger(R.integer.poll_size);
         pollInterval = rez.getInteger(R.integer.poll_interval) * 60 * 1000;
 
-        startPoller();
+        doStartPoller();
    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (BuildConfig.DEBUG) { Log.d(TAG, "destroyed"); }
+    }
 
     @Override
     protected void onHandleIntent(Intent i) {
@@ -59,11 +66,11 @@ public class YambaService extends IntentService {
                 break;
 
             case YambaContract.Service.OP_START_POLLING:
-                startPoller();
+                doStartPoller();
                 break;
 
             case YambaContract.Service.OP_STOP_POLLING:
-                stopPoller();
+                doStopPoller();
                 break;
 
             default:
@@ -84,36 +91,19 @@ public class YambaService extends IntentService {
         notifyPost(succeeded);
     }
 
-    private void notifyPost(boolean succeeded) {
-        Intent i = new Intent(YambaContract.Service.ACTION_POST_COMPLETE);
-        i.putExtra(YambaContract.Service.PARAM_POST_SUCCEEDED, succeeded);
-        if (BuildConfig.DEBUG) { Log.d(TAG, "post: " + succeeded); }
-        sendBroadcast(i, YambaContract.Service.PERMISSION_RECEIVE_POST_COMPLETE);
-    }
-
-    private void startPoller() {
+    private void doStartPoller() {
         if (0 >= pollInterval) { return; }
         ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
                 .setInexactRepeating(
-                        AlarmManager.RTC,
-                        System.currentTimeMillis() + 100,
-                        pollInterval,
-                        createPollingIntent());
+                    AlarmManager.RTC,
+                    System.currentTimeMillis() + 100,
+                    pollInterval,
+                    createPollingIntent());
     }
 
-    private void stopPoller() {
+    private void doStopPoller() {
         ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
                 .cancel(createPollingIntent());
-    }
-
-    private PendingIntent createPollingIntent() {
-        Intent i = new Intent(this, YambaService.class);
-        i.putExtra(YambaContract.Service.PARAM_OP, YambaContract.Service.OP_POLL);
-        return PendingIntent.getService(
-                this,
-                POLLER,
-                i,
-                PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private void doPoll() {
@@ -126,6 +116,23 @@ public class YambaService extends IntentService {
         }
 
         if (0 < n) { notifyTimelineUpdate(n); }
+    }
+
+    private void notifyPost(boolean succeeded) {
+        Intent i = new Intent(YambaContract.Service.ACTION_POST_COMPLETE);
+        i.putExtra(YambaContract.Service.PARAM_POST_SUCCEEDED, succeeded);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "post: " + succeeded); }
+        sendBroadcast(i, YambaContract.Service.PERMISSION_RECEIVE_POST_COMPLETE);
+    }
+
+    private PendingIntent createPollingIntent() {
+        Intent i = new Intent(this, YambaService.class);
+        i.putExtra(YambaContract.Service.PARAM_OP, YambaContract.Service.OP_POLL);
+        return PendingIntent.getService(
+            this,
+            POLLER,
+            i,
+            PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private int parseTimeline(List<YambaClient.Status> timeline) {
@@ -160,8 +167,8 @@ public class YambaService extends IntentService {
         Cursor c = null;
         try {
             c = getContentResolver().query(
-                    YambaContract.Timeline.URI,
-                    new String[] { YambaContract.Timeline.Columns.MAX_TIMESTAMP },
+                    YambaContract.MaxTimeline.URI,
+                    null,
                     null,
                     null,
                     null);

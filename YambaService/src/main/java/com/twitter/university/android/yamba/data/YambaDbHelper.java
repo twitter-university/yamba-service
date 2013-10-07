@@ -1,4 +1,4 @@
-package com.twitter.twitteru.android.yamba.data;
+package com.twitter.university.android.yamba.data;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
