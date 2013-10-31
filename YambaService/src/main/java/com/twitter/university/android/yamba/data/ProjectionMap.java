@@ -43,7 +43,7 @@ public class ProjectionMap {
     private final Map<String, String> colMap;
 
     ProjectionMap(Map<String, String> colMap) {
-        this.colMap = Collections.unmodifiableMap(colMap);;
+        this.colMap = Collections.unmodifiableMap(colMap);
     }
 
     /**

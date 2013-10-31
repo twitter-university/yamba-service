@@ -25,7 +25,7 @@ public class ColumnMap {
         /** long */ LONG,
         /** short */ SHORT,
         /** String */ STRING
-    };
+    }
 
     /**
      * Builder
@@ -105,7 +105,7 @@ public class ColumnMap {
     private final Map<String, ColumnDef> colMap;
 
     ColumnMap(Map<String, ColumnDef> colMap) {
-        this.colMap = Collections.unmodifiableMap(colMap);;
+        this.colMap = Collections.unmodifiableMap(colMap);
     }
 
     /**
