@@ -28,11 +28,11 @@ class YambaDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         Log.d(TAG, "create db");
         db.execSQL(
-                "CREATE TABLE " + TABLE_TIMELINE + "("
-                        + COL_ID + " INTEGER PRIMARY KEY,"
-                        + COL_TIMESTAMP + " INTEGER NOT NULL,"
-                        + COL_HANDLE + " STRING NOT NULL,"
-                        + COL_TWEET + " STRING" + ")");
+            "CREATE TABLE " + TABLE_TIMELINE + "("
+                + COL_ID + " INTEGER PRIMARY KEY,"
+                + COL_TIMESTAMP + " INTEGER NOT NULL,"
+                + COL_HANDLE + " STRING NOT NULL,"
+                + COL_TWEET + " STRING" + ")");
     }
 
     @Override
