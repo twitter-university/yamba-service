@@ -69,7 +69,7 @@ public class YambaProvider extends ContentProvider {
 
     private static final Map<String, String> PROJ_MAP_MAX_TIMELINE = new ProjectionMap.Builder()
         .addColumn(
-            YambaContract.Timeline.Columns.MAX_TIMESTAMP,
+            YambaContract.MaxTimeline.Columns.TIMESTAMP,
             "max(" + YambaDbHelper.COL_TIMESTAMP + ")")
         .build()
         .getProjectionMap();

@@ -91,21 +91,6 @@ public class YambaService extends IntentService {
         notifyPost(succeeded);
     }
 
-    private void doStartPoller() {
-        if (0 >= pollInterval) { return; }
-        ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
-                .setInexactRepeating(
-                    AlarmManager.RTC,
-                    System.currentTimeMillis() + 100,
-                    pollInterval,
-                    createPollingIntent());
-    }
-
-    private void doStopPoller() {
-        ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
-                .cancel(createPollingIntent());
-    }
-
     private void doPoll() {
         if (BuildConfig.DEBUG) { Log.d(TAG, "poll"); }
 
@@ -116,6 +101,21 @@ public class YambaService extends IntentService {
         }
 
         if (0 < n) { notifyTimelineUpdate(n); }
+    }
+
+    private void doStartPoller() {
+        if (0 >= pollInterval) { return; }
+        ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
+            .setInexactRepeating(
+                AlarmManager.RTC,
+                System.currentTimeMillis() + 100,
+                pollInterval,
+                createPollingIntent());
+    }
+
+    private void doStopPoller() {
+        ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
+            .cancel(createPollingIntent());
     }
 
     private void notifyPost(boolean succeeded) {
@@ -156,8 +156,8 @@ public class YambaService extends IntentService {
         int n = vals.size();
         if (0 >= n) { return 0; }
         n = getContentResolver().bulkInsert(
-                YambaContract.Timeline.URI,
-                vals.toArray(new ContentValues[n]));
+            YambaContract.Timeline.URI,
+            vals.toArray(new ContentValues[n]));
 
         if (BuildConfig.DEBUG) { Log.d(TAG, "inserted: " + n); }
         return n;
@@ -167,14 +167,14 @@ public class YambaService extends IntentService {
         Cursor c = null;
         try {
             c = getContentResolver().query(
-                    YambaContract.MaxTimeline.URI,
-                    null,
-                    null,
-                    null,
-                    null);
+                YambaContract.MaxTimeline.URI,
+                null,
+                null,
+                null,
+                null);
             return ((null == c) || (!c.moveToNext()))
-                    ? Long.MIN_VALUE
-                    : c.getLong(0);
+                ? Long.MIN_VALUE
+                : c.getLong(0);
         }
         finally {
             if (null != c) { c.close(); }
