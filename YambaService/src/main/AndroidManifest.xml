@@ -22,7 +22,7 @@
             android:name="com.twitter.university.android.yamba.service.permission.EXECUTE"
             android:description="@string/perm_service_exec_desc"
             android:label="@string/perm_service_exec_label"
-            android:protectionLevel="signature"/>
+            android:protectionLevel="dangerous"/>
     <permission
             android:name="com.twitter.university.android.yamba.service.permission.RECEIVE_POST_COMPLETE"
             android:description="@string/perm_receive_post_complete"
