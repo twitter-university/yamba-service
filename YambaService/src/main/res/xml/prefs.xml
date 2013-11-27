@@ -3,13 +3,16 @@
 
     <EditTextPreference
         android:key="@string/prefs_key_handle"
-        android:title="@string/prefs_title_handle" />
+        android:title="@string/prefs_title_handle"
+        android:singleLine="true" />
     <EditTextPreference
         android:key="@string/prefs_key_pass"
         android:password="true"
-        android:title="@string/prefs_title_password" />
+        android:title="@string/prefs_title_password"
+        android:singleLine="true" />
     <EditTextPreference
         android:key="@string/prefs_key_uri"
-        android:title="@string/prefs_title_uri" />
+        android:title="@string/prefs_title_uri"
+        android:singleLine="true" />
 
 </PreferenceScreen>
