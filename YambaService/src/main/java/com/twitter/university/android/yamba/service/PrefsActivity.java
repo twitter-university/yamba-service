@@ -4,6 +4,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.util.Log;
 
 import java.util.List;
 
@@ -30,5 +31,10 @@ public class PrefsActivity extends PreferenceActivity {
     @Override
     public void onBuildHeaders(List<Header> target) {
         loadHeadersFromResource(R.xml.pref_headers, target);
+    }
+
+    @Override
+    protected boolean isValidFragment(String fragmentName) {
+        return fragmentName.startsWith(PrefsActivity.class.getPackage().getName());
     }
 }
