@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <integer name="poll_size">20</integer>
-    <integer name="poll_interval">3</integer>
-</resources>

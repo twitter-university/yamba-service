@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Application -->
+    <string name="app_name">Yamba Service</string>
+    <string name="menu_about">About</string>
+    <string name="about_yamba">Yamba Service\n     @Twitter</string>
+    <string name="perm_timeline_read_label">Timeline Read</string>
+    <string name="perm_timeline_read_desc">Permission to read the timeline cache</string>
+    <string name="perm_timeline_write_label">Timeline Write</string>
+    <string name="perm_timeline_write_desc">Permission to write the timeline cache</string>
+    <string name="perm_service_exec_label">Service Exec</string>
+    <string name="perm_service_exec_desc">Permission to execute service methods</string>
+    <string name="perm_receive_timeline_update">Permission to receive timeline update broadcasts</string>
+    <string name="perm_receive_timeline_update_label">Timeline Update</string>
+    <string name="perm_receive_post_complete">Permission to receive post complete broadcasts</string>
+    <string name="perm_receive_post_complete_label">Post Complete</string>
+
+    <!-- Prefs -->
+    <string name="prefs_header">Yamba prefs</string>
+    <string name="prefs_key_handle">PREFS.HANDLE</string>
+    <string name="prefs_title_handle">Handle</string>
+    <string name="prefs_key_pwd">PREFS.PASS</string>
+    <string name="prefs_title_password">Password</string>
+    <string name="prefs_key_uri">PREFS.URI</string>
+    <string name="prefs_title_uri">Endpoint</string>
+
+
+</resources>
