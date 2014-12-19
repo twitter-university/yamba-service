@@ -52,7 +52,10 @@ public class PrefsActivity extends PreferenceActivity {
         super.onCreate(state);
 
         ActionBar aBar = getActionBar();
-        aBar.setHomeButtonEnabled(true);
+        if (null != aBar) {
+            aBar.setHomeButtonEnabled(true);
+            //aBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         if (Build.VERSION_CODES.HONEYCOMB > Build.VERSION.SDK_INT) {
             addPreferencesFromResource(R.xml.prefs);
