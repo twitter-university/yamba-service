@@ -16,14 +16,28 @@
     <string name="perm_receive_post_complete">Permission to receive post complete broadcasts</string>
     <string name="perm_receive_post_complete_label">Post Complete</string>
 
-    <!-- Prefs -->
-    <string name="prefs_header">Yamba prefs</string>
-    <string name="prefs_key_handle">PREFS.HANDLE</string>
-    <string name="prefs_title_handle">Handle</string>
-    <string name="prefs_key_pwd">PREFS.PASS</string>
-    <string name="prefs_title_password">Password</string>
-    <string name="prefs_key_uri">PREFS.URI</string>
-    <string name="prefs_title_uri">Endpoint</string>
+    <!-- Account -->
+    <string name="account_handle">Handle</string>
+    <string name="account_handle_example">student</string>
+    <string name="account_password">Password</string>
+    <string name="account_password_example">password</string>
+    <string name="account_endpoint">Endpoint</string>
+    <string name="account_endpoint_example">http://yamba.marakana.com/api</string>
+    <string name="err_empty_handle">Please supply a non-empty handle</string>
+    <string name="err_empty_password">Please supply a non-empty password</string>
+    <string name="err_empty_endpoint">Please supply a non-empty endpoint URI</string>
 
+
+    <string name="account_submit">Create</string>
+    <string name="account_failed">Failed to create account</string>
+    <string name="account_err_unknown_type">Unrecognized account type</string>
+    <string name="account_err_unknown_auth">Unrecognized authentication type</string>
+    <string name="account_err_exists">Account already exists: please delete before creating a new one</string>
+
+    <!-- Sync -->
+    <string name="account_type">com.twitter.university.android.yamba.ACCOUNT</string>
+
+    <!-- Provider -->
+    <string name="yamba_authority">com.twitter.university.android.yamba</string>
 
 </resources>

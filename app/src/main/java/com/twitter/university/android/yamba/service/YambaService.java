@@ -1,13 +1,9 @@
 package com.twitter.university.android.yamba.service;
 
-import android.app.AlarmManager;
-import android.app.IntentService;
-import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,98 +17,19 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class YambaService extends IntentService {
+public class YambaService {
     private static final String TAG = "SVC";
 
-    private static final int POLLER = 666;
+    private final Context ctxt;
+    private final int pollSize;
 
-    public static void startPoller(Context ctxt) {
-        Intent i = new Intent(ctxt, YambaService.class);
-        i.putExtra(YambaContract.Service.PARAM_OP, YambaContract.Service.OP_START_POLLING);
-        ctxt.startService(i);
+    public YambaService(Context ctxt) {
+        this.ctxt = ctxt;
+        this.pollSize = ctxt.getResources().getInteger(R.integer.poll_size);
     }
 
-    public static void sync(Context ctxt) {
-        Intent i = new Intent(ctxt, YambaService.class);
-        i.putExtra(YambaContract.Service.PARAM_OP, YambaContract.Service.OP_SYNC);
-        ctxt.startService(i);
-    }
-
-
-    private volatile int pollSize;
-    private volatile long pollInterval;
-
-    public YambaService() { super(TAG); }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        if (BuildConfig.DEBUG) { Log.d(TAG, "created"); }
-
-        Resources rez = getResources();
-        pollSize = rez.getInteger(R.integer.poll_size);
-        pollInterval = rez.getInteger(R.integer.poll_interval) * 60 * 1000;
-
-        doStartPoller();
-   }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (BuildConfig.DEBUG) { Log.d(TAG, "destroyed"); }
-    }
-
-    @Override
-    protected void onHandleIntent(Intent i) {
-        int op = i.getIntExtra(YambaContract.Service.PARAM_OP, 0);
-        if (BuildConfig.DEBUG) { Log.d(TAG, "exec: " + op); }
-        switch (op) {
-            case YambaContract.Service.OP_SYNC:
-                doSync();
-                break;
-
-            case YambaContract.Service.OP_START_POLLING:
-                doStartPoller();
-                break;
-
-            case YambaContract.Service.OP_STOP_POLLING:
-                doStopPoller();
-                break;
-
-            default:
-                Log.e(TAG, "Unexpected op: " + op);
-        }
-    }
-
-    private void doStartPoller() {
-        if (0 >= pollInterval) { return; }
-        ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
-            .setInexactRepeating(
-                AlarmManager.RTC,
-                System.currentTimeMillis() + 100,
-                pollInterval,
-                createPollingIntent());
-    }
-
-    private void doStopPoller() {
-        ((AlarmManager) getSystemService(Context.ALARM_SERVICE))
-            .cancel(createPollingIntent());
-    }
-
-    private void doSync() {
+    public void doSync(YambaClient client) {
         if (BuildConfig.DEBUG) { Log.d(TAG, "sync"); }
-
-        YambaClient client;
-        try { client = getClient(); }
-        catch (YambaClientException e) {
-            Log.e(TAG, "Failed to get client", e);
-            return;
-        }
-
-        if (null == client) {
-            Log.e(TAG, "Client is null");
-            return;
-        }
 
         try { notifyPost(postPending(client)); }
         catch (YambaClientException e) {
@@ -130,22 +47,11 @@ public class YambaService extends IntentService {
         if (count <= 0) { return; }
         Intent i = new Intent(YambaContract.Service.ACTION_POST_COMPLETE);
         i.putExtra(YambaContract.Service.PARAM_POST_SUCCEEDED, count);
-        sendBroadcast(i, YambaContract.Service.PERMISSION_RECEIVE_POST_COMPLETE);
-    }
-
-    private PendingIntent createPollingIntent() {
-        Intent i = new Intent(this, YambaService.class);
-        i.putExtra(YambaContract.Service.PARAM_OP, YambaContract.Service.OP_SYNC);
-        return PendingIntent.getService(
-            this,
-            POLLER,
-            i,
-            PendingIntent.FLAG_UPDATE_CURRENT);
+        ctxt.sendBroadcast(i, YambaContract.Service.PERMISSION_RECEIVE_POST_COMPLETE);
     }
 
     private int postPending(YambaClient client) throws YambaClientException {
-        ContentResolver cr = getContentResolver();
-
+        ContentResolver cr = ctxt.getContentResolver();
         String xactId = UUID.randomUUID().toString();
 
         int n = beginUpdate(cr, xactId);
@@ -194,7 +100,6 @@ public class YambaService extends IntentService {
         if (BuildConfig.DEBUG) { Log.d(TAG, "latest: " + latest); }
 
         List<ContentValues> vals = new ArrayList<ContentValues>();
-
         for (YambaClient.Status tweet: timeline) {
             long t = tweet.getCreatedAt().getTime();
             if (t <= latest) { continue; }
@@ -209,7 +114,7 @@ public class YambaService extends IntentService {
 
         int n = vals.size();
         if (0 >= n) { return 0; }
-        n = getContentResolver().bulkInsert(
+        n = ctxt.getContentResolver().bulkInsert(
             YambaContract.Timeline.URI,
             vals.toArray(new ContentValues[n]));
 
@@ -220,7 +125,7 @@ public class YambaService extends IntentService {
     private long getLatestTweetTime() {
         Cursor c = null;
         try {
-            c = getContentResolver().query(
+            c = ctxt.getContentResolver().query(
                 YambaContract.MaxTimeline.URI,
                 null,
                 null,
@@ -240,7 +145,7 @@ public class YambaService extends IntentService {
         if (count <= 0) { return; }
         Intent i = new Intent(YambaContract.Service.ACTION_TIMELINE_UPDATED);
         i.putExtra(YambaContract.Service.PARAM_COUNT, count);
-        sendBroadcast(i, YambaContract.Service.PERMISSION_RECEIVE_TIMELINE_UPDATE);
+        ctxt.sendBroadcast(i, YambaContract.Service.PERMISSION_RECEIVE_TIMELINE_UPDATE);
     }
 
     private int beginUpdate(ContentResolver cr, String xactId) {
@@ -278,9 +183,5 @@ public class YambaService extends IntentService {
             YambaProvider.CONSTRAINT_XACT,
             new String[] { xactId });
         if (BuildConfig.DEBUG) { Log.d(TAG, "update complete: " + n); }
-    }
-
-    private YambaClient getClient() throws YambaClientException {
-        return ((YambaApplication) getApplication()).getYambaClient();
     }
 }

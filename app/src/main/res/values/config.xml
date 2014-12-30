@@ -2,8 +2,4 @@
 <resources>
     <integer name="poll_size">20</integer>
     <integer name="poll_interval">3</integer>
-
-    <string name="prefs_default_handle">student</string>
-    <string name="prefs_default_pwd">password</string>
-    <string name="prefs_default_uri">http://yamba.marakana.com/api</string>
 </resources>

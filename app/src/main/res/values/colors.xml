@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="primary">#55acee</color>
+    <color name="secondary">#66757f</color>
+    <color name="accent">#292f33</color>
+
+    <color name="fog">#cccccccc</color>
+    <color name="white">#ffffff</color>
+
+</resources>

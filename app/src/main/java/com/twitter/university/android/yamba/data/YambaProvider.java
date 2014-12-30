@@ -3,19 +3,15 @@ package com.twitter.university.android.yamba.data;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
-import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.os.Handler;
 import android.util.Log;
 
 import com.twitter.university.android.yamba.service.BuildConfig;
 import com.twitter.university.android.yamba.service.YambaContract;
-import com.twitter.university.android.yamba.service.YambaService;
 
 import java.util.Map;
 
@@ -128,22 +124,12 @@ public class YambaProvider extends ContentProvider {
         .getProjectionMap();
 
 
-
     private YambaDbHelper dbHelper;
 
     @Override
     public boolean onCreate() {
         if (BuildConfig.DEBUG) { Log.d(TAG, "created"); }
-        final Context ctxt = getContext();
-
-        dbHelper = new YambaDbHelper(ctxt);
-
-        ContentObserver obs = new ContentObserver(new Handler()) {
-            @Override public boolean deliverSelfNotifications() { return true; }
-            @Override public void onChange(boolean selfChange) { YambaService.sync(ctxt); }
-        };
-        ctxt.getContentResolver().registerContentObserver(YambaContract.Posts.URI, true, obs);
-
+        dbHelper = new YambaDbHelper(getContext());
         return true;
     }
 
@@ -236,7 +222,7 @@ public class YambaProvider extends ContentProvider {
         }
 
         if (0 < count) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(uri, null, false);
         }
 
         return count;
@@ -263,7 +249,7 @@ public class YambaProvider extends ContentProvider {
         if (0 > id) { return null; }
 
         uri = uri.buildUpon().appendPath(String.valueOf(id)).build();
-        getContext().getContentResolver().notifyChange(uri, null);
+        getContext().getContentResolver().notifyChange(uri, null, true);
 
         return uri;
     }
@@ -279,11 +265,17 @@ public class YambaProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unexpected uri: " + uri);
         }
 
-        return getDb().update(
+        int n = getDb().update(
             YambaDbHelper.TABLE_POSTS,
             COL_MAP_POSTS.translateCols(row),
             sel,
             selArgs);
+
+        if (0 < n) {
+            getContext().getContentResolver().notifyChange(uri, null, false);
+        }
+
+        return n;
     }
 
     @Override
