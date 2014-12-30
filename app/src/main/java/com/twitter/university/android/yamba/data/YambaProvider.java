@@ -3,15 +3,19 @@ package com.twitter.university.android.yamba.data;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 
 import com.twitter.university.android.yamba.service.BuildConfig;
 import com.twitter.university.android.yamba.service.YambaContract;
+import com.twitter.university.android.yamba.service.YambaService;
 
 import java.util.Map;
 
@@ -19,14 +23,30 @@ import java.util.Map;
 public class YambaProvider extends ContentProvider {
     private static final String TAG = "PROVIDER";
 
-    private static final int TIMELINE_ITEM_TYPE = 1;
-    private static final int TIMELINE_DIR_TYPE = 2;
-    private static final int MAX_TIMELINE_ITEM_TYPE = 3;
+    // it would be better if we could hide these...
+    public static final String CONSTRAINT_NEEDS_SYNC
+        = YambaDbHelper.COL_SENT + " is null and " + YambaDbHelper.COL_XACT + " is null";
+    public static final String CONSTRAINT_XACT = YambaDbHelper.COL_XACT + "=?";
+    public static final String CONSTRAINT_IDS = YambaDbHelper.COL_ID + " in ";
+
+    private static final int POST_ITEM_TYPE = 1;
+    private static final int POST_DIR_TYPE = 2;
+    private static final int TIMELINE_ITEM_TYPE = 3;
+    private static final int TIMELINE_DIR_TYPE = 4;
+    private static final int MAX_TIMELINE_ITEM_TYPE = 5;
 
     //  scheme                     authority                   path  [id]
     // content://com.twitter.university.android.yamba.timeline/timeline/7
     private static final UriMatcher MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
     static {
+        MATCHER.addURI(
+            YambaContract.AUTHORITY,
+            YambaContract.Posts.TABLE + "/#",
+            POST_ITEM_TYPE);
+        MATCHER.addURI(
+            YambaContract.AUTHORITY,
+            YambaContract.Posts.TABLE,
+            POST_DIR_TYPE);
         MATCHER.addURI(
             YambaContract.AUTHORITY,
             YambaContract.Timeline.TABLE + "/#",
@@ -40,6 +60,38 @@ public class YambaProvider extends ContentProvider {
             YambaContract.MaxTimeline.TABLE,
             MAX_TIMELINE_ITEM_TYPE);
     }
+
+    private static final ColumnMap COL_MAP_POSTS = new ColumnMap.Builder()
+        .addColumn(
+            YambaContract.Posts.Columns.ID,
+            YambaDbHelper.COL_ID,
+            ColumnMap.Type.LONG)
+        .addColumn(
+            YambaContract.Posts.Columns.TIMESTAMP,
+            YambaDbHelper.COL_TIMESTAMP,
+            ColumnMap.Type.LONG)
+        .addColumn(
+            YambaContract.Posts.Columns.TRANSACTION,
+            YambaDbHelper.COL_XACT,
+            ColumnMap.Type.STRING)
+        .addColumn(
+            YambaContract.Posts.Columns.SENT,
+            YambaDbHelper.COL_SENT,
+            ColumnMap.Type.LONG)
+        .addColumn(
+            YambaContract.Posts.Columns.TWEET,
+            YambaDbHelper.COL_TWEET,
+            ColumnMap.Type.STRING)
+        .build();
+
+    private static final Map<String, String> PROJ_MAP_POSTS = new ProjectionMap.Builder()
+        .addColumn(YambaContract.Posts.Columns.ID, YambaDbHelper.COL_ID)
+        .addColumn(YambaContract.Posts.Columns.TIMESTAMP, YambaDbHelper.COL_TIMESTAMP)
+        .addColumn(YambaContract.Posts.Columns.TRANSACTION, YambaDbHelper.COL_XACT)
+        .addColumn(YambaContract.Posts.Columns.SENT, YambaDbHelper.COL_SENT)
+        .addColumn(YambaContract.Posts.Columns.TWEET, YambaDbHelper.COL_TWEET)
+        .build()
+        .getProjectionMap();
 
     private static final ColumnMap COL_MAP_TIMELINE = new ColumnMap.Builder()
         .addColumn(
@@ -75,18 +127,33 @@ public class YambaProvider extends ContentProvider {
         .build()
         .getProjectionMap();
 
+
+
     private YambaDbHelper dbHelper;
 
     @Override
     public boolean onCreate() {
         if (BuildConfig.DEBUG) { Log.d(TAG, "created"); }
-        dbHelper = new YambaDbHelper(getContext());
+        final Context ctxt = getContext();
+
+        dbHelper = new YambaDbHelper(ctxt);
+
+        ContentObserver obs = new ContentObserver(new Handler()) {
+            @Override public boolean deliverSelfNotifications() { return true; }
+            @Override public void onChange(boolean selfChange) { YambaService.sync(ctxt); }
+        };
+        ctxt.getContentResolver().registerContentObserver(YambaContract.Posts.URI, true, obs);
+
         return true;
     }
 
     @Override
     public String getType(Uri uri) {
         switch (MATCHER.match(uri)) {
+            case POST_ITEM_TYPE:
+                return YambaContract.Posts.ITEM_TYPE;
+            case POST_DIR_TYPE:
+                return YambaContract.Posts.DIR_TYPE;
             case TIMELINE_ITEM_TYPE:
                 return YambaContract.Timeline.ITEM_TYPE;
             case TIMELINE_DIR_TYPE:
@@ -106,19 +173,25 @@ public class YambaProvider extends ContentProvider {
         long pk = -1;
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         switch (MATCHER.match(uri)) {
+            case POST_ITEM_TYPE:
+                pk = ContentUris.parseId(uri);
+            case POST_DIR_TYPE:
+                qb.setTables(YambaDbHelper.TABLE_POSTS);
+                qb.setProjectionMap(PROJ_MAP_POSTS);
+                break;
             case TIMELINE_ITEM_TYPE:
                 pk = ContentUris.parseId(uri);
             case TIMELINE_DIR_TYPE:
+                qb.setTables(YambaDbHelper.TABLE_TIMELINE);
                 qb.setProjectionMap(PROJ_MAP_TIMELINE);
                 break;
             case MAX_TIMELINE_ITEM_TYPE:
+                qb.setTables(YambaDbHelper.TABLE_TIMELINE);
                 qb.setProjectionMap(PROJ_MAP_MAX_TIMELINE);
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected uri: " + uri);
         }
-
-        qb.setTables(YambaDbHelper.TABLE_TIMELINE);
 
         if (0 < pk) { qb.appendWhere(YambaDbHelper.COL_ID + "=" + pk); }
 
@@ -170,13 +243,47 @@ public class YambaProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri arg0, ContentValues arg1) {
-        throw new UnsupportedOperationException("insert not supported");
+    public Uri insert(Uri uri, ContentValues row) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "insert: " + row); }
+
+        switch (MATCHER.match(uri)) {
+            case POST_DIR_TYPE:
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected uri: " + uri);
+        }
+
+        row.put(YambaContract.Posts.Columns.TIMESTAMP, System.currentTimeMillis());
+
+        long id = getDb().insert(
+            YambaDbHelper.TABLE_POSTS,
+            null,
+            COL_MAP_POSTS.translateCols(row));
+
+        if (0 > id) { return null; }
+
+        uri = uri.buildUpon().appendPath(String.valueOf(id)).build();
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        return uri;
     }
 
     @Override
-    public int update(Uri arg0, ContentValues arg1, String arg2, String[] arg3) {
-        throw new UnsupportedOperationException("update not supported");
+    public int update(Uri uri, ContentValues row, String sel, String[] selArgs) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "update: " + row); }
+
+        switch (MATCHER.match(uri)) {
+            case POST_DIR_TYPE:
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected uri: " + uri);
+        }
+
+        return getDb().update(
+            YambaDbHelper.TABLE_POSTS,
+            COL_MAP_POSTS.translateCols(row),
+            sel,
+            selArgs);
     }
 
     @Override
